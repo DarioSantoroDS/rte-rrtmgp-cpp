@@ -245,7 +245,7 @@ namespace rrtmgp_kernel_launcher_cuda
         template<unsigned int I, unsigned int J, unsigned int K, class... Args>
         static void launch(dim3 grid, dim3 block, Args... args)
         {
-            gas_optical_depths_minor_kernel<I, J, K><<<grid, block>>>(args...);
+            gas_optical_depths_minor_kernel<I, J, K>(args...);
         }
     };
 
@@ -325,14 +325,13 @@ namespace rrtmgp_kernel_launcher_cuda
                 kmajor, col_mix, fmajor, jeta,
                 tropo, jtemp, jpress,
                 tau);
-
+        cudaDeviceSynchronize();
         // Lower
         int idx_tropo = 1;
 
         dim3 grid_gpu_min_1(1, 42, 8);
         dim3 block_gpu_min_1(8,1,16);
-
-        gas_optical_depths_minor_kernel<8,1,16><<<grid_gpu_min_1, block_gpu_min_1>>>(
+        gas_optical_depths_minor_kernel<8,1,16>(
                                         ncol, nlay, ngpt,
                                         ngas, nflav, ntemp, neta,
                                         nminorlower,
@@ -348,15 +347,14 @@ namespace rrtmgp_kernel_launcher_cuda
                                         kminor_start_lower,
                                         play, tlay, col_gas,
                                         fminor, jeta, jtemp,
-                                        tropo, tau, nullptr);
+                                        tropo, tau,nullptr);
 
         // Upper
         idx_tropo = 0;
 
         dim3 grid_gpu_min_2(1, 42, 4);
         dim3 block_gpu_min_2(8,1,32);
-
-        gas_optical_depths_minor_kernel<8,1,32><<<grid_gpu_min_2, block_gpu_min_2>>>(
+        gas_optical_depths_minor_kernel<8,1,32>(
                                     ncol, nlay, ngpt,
                                     ngas, nflav, ntemp, neta,
                                     nminorupper,
@@ -372,10 +370,9 @@ namespace rrtmgp_kernel_launcher_cuda
                                     kminor_start_upper,
                                     play, tlay, col_gas,
                                     fminor, jeta, jtemp,
-                                    tropo, tau, nullptr);
+                                    tropo, tau,nullptr);
 
     }
-
 
     void Planck_source(
             const int ncol, const int nlay, const int nbnd, const int ngpt,
